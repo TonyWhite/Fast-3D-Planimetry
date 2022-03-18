@@ -62,3 +62,48 @@ module _extrude_layer(file, layer, height, lift=0){
   linear_extrude(height)
   import (file, layer);
 }
+
+/*
+Build wall frame for doors and windows
+
+INPUTS:
+hole_width: the width of the wall hole
+hole_depth: the depth of the wall hole
+hole_height: the height of the wall hole
+frame_thickness: the thickness of the frame
+frame_overhang: the overhang of the frame
+erase_bottom: true to erase the frame at the bottom
+*/
+module wall_frame(hole_width, hole_depth, hole_height, frame_thickness, frame_overhang, erase_bottom=false){
+  render(convexity=10){
+    difference(){
+      // Frame Bounding
+      if (frame_overhang == 0){
+        cube([hole_width, hole_depth, hole_height], center=false);
+      }
+      else {
+        translate([-frame_overhang, -frame_thickness, -frame_overhang])
+        cube([hole_width+frame_overhang*2, hole_depth+frame_thickness*2, hole_height+frame_overhang*2], center=false);
+      }
+      
+      // Frame hole
+      translate([frame_thickness, -frame_thickness, frame_thickness])
+      cube([hole_width-frame_thickness*2, hole_depth+frame_thickness*2, hole_height-frame_thickness*2], center=false);
+      
+      // The wall
+      difference(){
+        translate([-frame_overhang, 0, -frame_overhang])
+        cube([hole_width+frame_overhang*2, hole_depth, hole_height+frame_overhang*2], center=false);
+        cube([hole_width, hole_depth, hole_height], center=false);
+      }
+      
+      // Erase the frame at the bottom?
+      if (erase_bottom){
+        translate([-frame_overhang, -frame_thickness, -frame_overhang])
+        cube([hole_width+frame_overhang*2, hole_depth+frame_thickness*2, frame_overhang], center=false);
+        translate([frame_thickness, -frame_thickness, 0])
+        cube([hole_width-frame_thickness*2, hole_depth+frame_thickness*2, frame_thickness], center=false);
+      }
+    }
+  }
+}
